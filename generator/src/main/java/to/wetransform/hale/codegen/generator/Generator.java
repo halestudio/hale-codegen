@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
@@ -32,6 +33,8 @@ import eu.esdihumboldt.hale.common.schema.model.TypeDefinition;
 import eu.esdihumboldt.hale.common.schema.model.constraint.property.Cardinality;
 import eu.esdihumboldt.hale.common.schema.model.constraint.type.Binding;
 import eu.esdihumboldt.hale.common.schema.model.constraint.type.HasValueFlag;
+import to.wetransform.hale.codegen.model.Named;
+import to.wetransform.hale.codegen.model.Value;
 
 public class Generator {
 
@@ -68,6 +71,9 @@ public class Generator {
     className = newClassName(type.getName());
     TypeSpec.Builder builder = TypeSpec.classBuilder(className);
 
+    // add named annotation
+    builder.addAnnotation(createNameAnnotation(type.getName()));
+
     // set super type
     if (type.getSuperType() != null && !isSimpleType(type) &&
         // if the HasValueFlag is removed in the type, don't add the super type
@@ -86,7 +92,7 @@ public class Generator {
       // directly (e.g. subclassing String does not make sense)
       //FIXME magic property name 'value'
       Class<?> bindingClass = type.getConstraint(Binding.class).getBinding();
-      addBeanProperty(builder, "value", ClassName.get(bindingClass));
+      addBeanProperty(builder, "value", ClassName.get(bindingClass), null);
     }
     else {
       // add properties
@@ -100,6 +106,24 @@ public class Generator {
 
     typeClasses.put(type.getName(), className);
     return className;
+  }
+
+  private AnnotationSpec createNameAnnotation(QName name) {
+    if (name != null) {
+      AnnotationSpec.Builder builder = AnnotationSpec.builder(Named.class);
+
+      builder.addMember("value", "$S", name.getLocalPart());
+
+      if (name.getNamespaceURI() != null && !name.getNamespaceURI().isEmpty()) {
+        builder.addMember("namespace", "$S", name.getNamespaceURI());
+      }
+
+      return builder.build();
+    }
+    else {
+      // special case - null name is interpreted as "value"
+      return AnnotationSpec.builder(Value.class).build();
+    }
   }
 
   private void addProperties(TypeDefinition type, TypeSpec.Builder builder) throws IOException {
@@ -128,10 +152,10 @@ public class Generator {
 
       Cardinality card = property.getConstraint(Cardinality.class);
       if (card.mayOccurMultipleTimes()) {
-        addCollectionProperty(builder, propertyName, propertyType);
+        addCollectionProperty(builder, propertyName, propertyType, child.getName());
       }
       else {
-        addBeanProperty(builder, propertyName, propertyType);
+        addBeanProperty(builder, propertyName, propertyType, child.getName());
       }
     }
     else if (child.asGroup() != null) {
@@ -147,9 +171,13 @@ public class Generator {
         propertyType.getChildren().isEmpty();
   }
 
-  private void addBeanProperty(TypeSpec.Builder builder, String propertyName, TypeName propertyType) {
+  private void addBeanProperty(TypeSpec.Builder builder, String propertyName, TypeName propertyType,
+      QName qualifiedName) {
     // add the field
-    builder.addField(propertyType, propertyName, Modifier.PRIVATE);
+    FieldSpec field = FieldSpec.builder(propertyType, propertyName, Modifier.PRIVATE)
+        .addAnnotation(createNameAnnotation(qualifiedName))
+        .build();
+      builder.addField(field);
 
     // add setter
     String setterName = "set" + propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1);
@@ -170,13 +198,15 @@ public class Generator {
     builder.addMethod(getter);
   }
 
-  private void addCollectionProperty(TypeSpec.Builder builder, String propertyName, TypeName propertyType) {
+  private void addCollectionProperty(TypeSpec.Builder builder, String propertyName, TypeName propertyType,
+      QName qualifiedName) {
     propertyType = ParameterizedTypeName.get(ClassName.get(List.class), propertyType);
 
     // add the field
     FieldSpec field = FieldSpec.builder(propertyType, propertyName, Modifier.PRIVATE)
       // initialize with empty collection
       .initializer("new $T()", ClassName.get(ArrayList.class))
+      .addAnnotation(createNameAnnotation(qualifiedName))
       .build();
     builder.addField(field);
 
