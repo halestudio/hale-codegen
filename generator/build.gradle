@@ -5,4 +5,31 @@ targetCompatibility = '1.7'
 
 dependencies {
   compile project(':model')
+
+  // https://github.com/square/javapoet
+  compile 'com.squareup:javapoet:1.7.0'
+
+  // core
+  compile 'eu.esdihumboldt.unpuzzled:org.eclipse.equinox.nonosgi.registry:1.0.0'
+  compile "eu.esdihumboldt.hale:eu.esdihumboldt.hale.common.core:$haleVersion"
+
+  // schema
+  compile "eu.esdihumboldt.hale:eu.esdihumboldt.hale.common.schema:$haleVersion"
+  compile "eu.esdihumboldt.hale:eu.esdihumboldt.hale.io.xsd:$haleVersion"
+
+  // presets
+  compile "eu.esdihumboldt.hale:eu.esdihumboldt.hale.common.schema.presets:$haleVersion"
+
+  // resource cache (OpenGIS schemas, INSPIRE schemas, W3C schemas, etc.)
+  compile(group: 'eu.esdihumboldt.hale', name: 'eu.esdihumboldt.util.resource', version: haleVersion)
+  compile(group: 'eu.esdihumboldt.hale', name: 'eu.esdihumboldt.util.resource.schemas.opengis.net', version: '2015.10.27')
+  compile(group: 'eu.esdihumboldt.hale', name: 'eu.esdihumboldt.util.resource.schemas.inspire', version: '2015.10.27')
+  compile(group: 'eu.esdihumboldt.hale', name: 'eu.esdihumboldt.util.resource.schemas.portele.de', version: '2015.10.27')
+  compile(group: 'eu.esdihumboldt.hale', name: 'eu.esdihumboldt.util.resource.w3.org', version: '2015.10.27')
+
+  // logging
+  runtime(group: 'eu.esdihumboldt.unpuzzled', name: 'de.fhg.igd.slf4jplus.logback.appender', version: '1.2.0.201503311443')
+
+  // Testing
+  testCompile 'junit:junit:4.12'
 }

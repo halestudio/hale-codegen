@@ -31,6 +31,10 @@ configure(srcProjects()) { project ->
   version = '1.0.0-SNAPSHOT'
 
   repositories {
+    maven {
+      url 'http://download.osgeo.org/webdav/geotools/'
+    }
+
     jcenter()
 
     // HALE artifacts
@@ -41,6 +45,15 @@ configure(srcProjects()) { project ->
     maven {
       url 'http://artifactory.esdi-humboldt.eu/artifactory/libs-release/'
     }
+  }
+
+  configurations.all {
+    // ensure SNAPSHOTs are updated every time if needed
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+  }
+
+  project.ext {
+    haleVersion = '3.0.0'
   }
 
 }
