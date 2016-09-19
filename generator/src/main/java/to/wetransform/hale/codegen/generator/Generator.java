@@ -3,19 +3,25 @@ package to.wetransform.hale.codegen.generator;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.lang.model.element.Modifier;
 import javax.xml.namespace.QName;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.NameAllocator;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
@@ -29,7 +35,10 @@ import eu.esdihumboldt.hale.common.schema.model.constraint.type.HasValueFlag;
 
 public class Generator {
 
+  private static final Logger log = LoggerFactory.getLogger(Generator.class);
+
   private final Map<QName, ClassName> typeClasses = new HashMap<>();
+  private final String packagePrefix = ""; //TODO configurable
   private File targetFolder;
 
   /**
@@ -194,12 +203,57 @@ public class Generator {
 
   private String getPropertyName(QName name) {
     // TODO Auto-generated method stub
+    //FIXME collisions in classes and their super classes need to be avoided
+    // -> use scoped NameAllocator and add super type properties, then properties...
     return name.getLocalPart();
   }
 
   private ClassName newClassName(QName name) {
     // TODO Auto-generated method stub
-    return ClassName.get("com.example", name.getLocalPart());
+    String packageName = getPackageName(name.getNamespaceURI());
+    if (packageName == null || packageName.isEmpty()) {
+      packageName = packagePrefix;
+    }
+    else if (!packagePrefix.isEmpty()) {
+      packageName = packagePrefix + "." + packageName;
+    }
+    return ClassName.get(packageName, name.getLocalPart());
+  }
+
+  private String getPackageName(String namespaceURI) {
+    List<String> parts = new ArrayList<>();
+
+    // first try interpreting as URI
+    try {
+      URI uri = new URI(namespaceURI);
+      if (uri.getHost() != null) {
+        String[] hostParts = uri.getHost().split("\\.");
+        for (int i = hostParts.length - 1; i >= 0; i--) {
+          String part = hostParts[i];
+          if (part != null && !part.isEmpty()) {
+            parts.add(toValidIdentifier(part));
+          }
+        }
+      }
+      if (uri.getPath() != null) {
+        String[] pathParts = uri.getPath().split("/");
+        for (int i = 0; i < pathParts.length; i++) {
+          String part = pathParts[i];
+          if (part != null && !part.isEmpty()) {
+            parts.add(toValidIdentifier(part.toLowerCase()));
+          }
+        }
+      }
+    } catch (Exception e) {
+      //TODO fall back to removing illegal parameters?
+      log.error("Error determining package name from namespace", e);
+    }
+
+    return parts.stream().collect(Collectors.joining("."));
+  }
+
+  private String toValidIdentifier(String ident) {
+    return NameAllocator.toJavaIdentifier(ident);
   }
 
 }
