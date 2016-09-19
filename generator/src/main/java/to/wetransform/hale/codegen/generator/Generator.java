@@ -234,7 +234,7 @@ public class Generator {
   private String getPropertyName(QName name) {
     // TODO Auto-generated method stub
     //FIXME collisions in classes and their super classes need to be avoided
-    // -> use scoped NameAllocator and add super type properties, then properties...
+    // -> use scoped NameAllocator and add "value", then super type properties, then properties... ?
     return name.getLocalPart();
   }
 

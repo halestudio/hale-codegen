@@ -40,4 +40,31 @@ public class CLITest {
     }
   }
 
+  @Test
+  public void testGenerateGeometry() throws Exception {
+    Path tempDir = Files.createTempDirectory("classes");
+
+    CLI.run(getClass().getResource("/geometry/hydroEx.xsd").toURI(), tempDir.toFile());
+
+    // delete generated classes
+    if (DELETE_FILES) {
+      Files.walkFileTree(tempDir, new SimpleFileVisitor<Path>() {
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+          Files.delete(file);
+          return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+          Files.delete(dir);
+          return FileVisitResult.CONTINUE;
+        }
+
+      });
+    } else {
+      System.out.println(tempDir.toAbsolutePath().toString());
+    }
+  }
+
 }
