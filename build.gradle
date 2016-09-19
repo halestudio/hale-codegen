@@ -1,0 +1,107 @@
+buildscript {
+  repositories {
+    jcenter()
+  }
+
+  dependencies {
+    classpath 'org.standardout:gradle-eclipseconfig:1.0.0'
+  }
+}
+
+defaultTasks 'clean', 'install'
+
+def srcProjects() {
+  subprojects.findAll { new File(it.projectDir, "src").exists() }
+}
+
+def javaProjects() {
+  subprojects.findAll { new File(it.projectDir, "src/main/java").exists() }
+}
+
+def groovyProjects() {
+  subprojects.findAll { new File(it.projectDir, "src/main/groovy").exists() }
+}
+
+configure(srcProjects()) { project ->
+  // common settings
+
+  apply plugin: 'maven'
+
+  group = 'to.wetransform.hale-codegen'
+  version = '1.0.0-SNAPSHOT'
+
+  repositories {
+    jcenter()
+
+    // HALE artifacts
+    maven {
+      url 'https://artifactory.wetransform.to/artifactory/libs-release'
+    }
+    // HALE artifactory
+    maven {
+      url 'http://artifactory.esdi-humboldt.eu/artifactory/libs-release/'
+    }
+  }
+
+}
+
+configure(javaProjects()) {
+  // common settings for Java projects
+  apply plugin: 'java'
+
+  // package javadoc into a jar file
+  task packageJavadoc(type: Jar, dependsOn: 'javadoc') {
+    from javadoc.destinationDir
+    classifier = 'javadoc'
+  }
+}
+
+configure(groovyProjects()) {
+  // common settings for Groovy projects
+  apply plugin: 'groovy'
+
+  // package groovydoc into a jar file
+  task packageJavadoc(type: Jar, dependsOn: 'groovydoc') {
+    from groovydoc.destinationDir
+    classifier = 'javadoc'
+  }
+}
+
+configure(srcProjects()) { project ->
+  // further common configuration (needs java/groovy config)
+
+  // package source into a jar file
+  task packageSources(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+  }
+
+  // define artifacts for upload
+  artifacts {
+    archives jar
+    archives packageJavadoc
+    archives packageSources
+  }
+
+  uploadArchives {
+    repositories {
+      mavenDeployer {
+
+        // upload to wetransform artifactory
+        repository(url: 'https://artifactory.wetransform.to/artifactory/libs-release-local') {
+          authentication(userName: project.hasProperty('wetfArtifactoryUser') ? wetfArtifactoryUser : '',
+            password: project.hasProperty('wetfArtifactoryPassword') ? wetfArtifactoryPassword : '')
+        }
+        snapshotRepository(url: 'https://artifactory.wetransform.to/artifactory/libs-snapshot-local') {
+          authentication(userName: project.hasProperty('wetfArtifactoryUser') ? wetfArtifactoryUser : '',
+            password: project.hasProperty('wetfArtifactoryPassword') ? wetfArtifactoryPassword : '')
+        }
+
+      }
+    }
+  }
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '3.0'
+}
