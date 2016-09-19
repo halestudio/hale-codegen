@@ -2,16 +2,21 @@ package to.wetransform.hale.codegen.generator;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.lang.model.element.Modifier;
 import javax.xml.namespace.QName;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
@@ -55,9 +60,16 @@ public class Generator {
     TypeSpec.Builder builder = TypeSpec.classBuilder(className);
 
     // set super type
-    if (type.getSuperType() != null && !isSimpleType(type)) {
+    if (type.getSuperType() != null && !isSimpleType(type) &&
+        // if the HasValueFlag is removed in the type, don't add the super type
+        !(!type.getConstraint(HasValueFlag.class).isEnabled()
+            && type.getSuperType().getConstraint(HasValueFlag.class).isEnabled())) {
       //TODO check if this kind of recursion can lead to problems (cycles!)
       builder.superclass(getOrCreateClass(type.getSuperType()));
+    }
+    else {
+      // must implement Serializable
+      builder.addSuperinterface(ClassName.get(Serializable.class));
     }
 
     if (isSimpleType(type)) {
@@ -92,19 +104,24 @@ public class Generator {
       PropertyDefinition property = child.asProperty();
       String propertyName = getPropertyName(property.getName());
 
-      Cardinality card = property.getConstraint(Cardinality.class);
-      //TODO handle cardinalities greater than one
-
+      TypeName propertyType;
       if (isSimpleType(property.getPropertyType())) {
         // simple type -> use binding
         Class<?> bindingClass = property.getPropertyType().getConstraint(Binding.class).getBinding();
-        addBeanProperty(builder, propertyName, ClassName.get(bindingClass));
+        propertyType = ClassName.get(bindingClass);
+
       }
       else {
         // complex type
-
         //TODO check if this kind of recursion can lead to problems (cycles!)
-        ClassName propertyType = getOrCreateClass(property.getPropertyType());
+        propertyType = getOrCreateClass(property.getPropertyType());
+      }
+
+      Cardinality card = property.getConstraint(Cardinality.class);
+      if (card.mayOccurMultipleTimes()) {
+        addCollectionProperty(builder, propertyName, propertyType);
+      }
+      else {
         addBeanProperty(builder, propertyName, propertyType);
       }
     }
@@ -124,6 +141,37 @@ public class Generator {
   private void addBeanProperty(TypeSpec.Builder builder, String propertyName, TypeName propertyType) {
     // add the field
     builder.addField(propertyType, propertyName, Modifier.PRIVATE);
+
+    // add setter
+    String setterName = "set" + propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1);
+    MethodSpec setter = MethodSpec.methodBuilder(setterName)
+        .addModifiers(Modifier.PUBLIC)
+        .addParameter(propertyType, propertyName, Modifier.FINAL)
+        .addStatement("this." + propertyName + " = " + propertyName)
+        .build();
+    builder.addMethod(setter);
+
+    // add getter
+    String getterName = "get" + propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1);
+    MethodSpec getter = MethodSpec.methodBuilder(getterName)
+        .addModifiers(Modifier.PUBLIC)
+        .returns(propertyType)
+        .addStatement("return this." + propertyName)
+        .build();
+    builder.addMethod(getter);
+  }
+
+  private void addCollectionProperty(TypeSpec.Builder builder, String propertyName, TypeName propertyType) {
+    propertyType = ParameterizedTypeName.get(ClassName.get(List.class), propertyType);
+
+    // add the field
+    FieldSpec field = FieldSpec.builder(propertyType, propertyName, Modifier.PRIVATE)
+      // initialize with empty collection
+      .initializer("new $T()", ClassName.get(ArrayList.class))
+      .build();
+    builder.addField(field);
+
+    //TODO collection optimized methods like add()?
 
     // add setter
     String setterName = "set" + propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1);
