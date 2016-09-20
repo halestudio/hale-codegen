@@ -199,6 +199,16 @@ public class Generator {
     else if (child.asGroup() != null) {
       GroupPropertyDefinition group = child.asGroup();
 
+      //FIXME
+      //XXX prefer display name? uniqueness?!
+      //XXX for now only for choices on special conditions
+      if (group.getConstraint(ChoiceFlag.class).isEnabled()) {
+        String alternative = NameAllocator.toJavaIdentifier(group.getDisplayName());
+        if (!alternative.contains("choice")) {
+          propertyName = alternative;
+        }
+      }
+
       propertyType = getOrCreateGroupType(group);
 
       card = group.getConstraint(Cardinality.class);
