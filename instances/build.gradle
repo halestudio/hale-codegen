@@ -1,0 +1,15 @@
+apply plugin: 'org.standardout.eclipseconfig'
+
+sourceCompatibility = '1.7'
+targetCompatibility = '1.7'
+
+dependencies {
+  compile project(':model')
+  
+  // core
+  compile 'eu.esdihumboldt.unpuzzled:org.eclipse.equinox.nonosgi.registry:1.0.0'
+  compile "eu.esdihumboldt.hale:eu.esdihumboldt.hale.common.core:$haleVersion"
+
+  // instance
+  compile "eu.esdihumboldt.hale:eu.esdihumboldt.hale.common.instance:$haleVersion"
+}
