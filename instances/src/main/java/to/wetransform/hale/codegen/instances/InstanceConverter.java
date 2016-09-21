@@ -10,6 +10,8 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import org.eclipse.equinox.nonosgi.registry.RegistryFactoryHelper;
+
 import eu.esdihumboldt.hale.common.instance.model.Instance;
 import eu.esdihumboldt.hale.common.instance.model.InstanceCollection;
 import eu.esdihumboldt.hale.common.instance.model.MutableGroup;
@@ -28,6 +30,13 @@ import to.wetransform.hale.codegen.model.Value;
 public class InstanceConverter {
 
   private final Map<Class<?>, List<Field>> fieldCache = new HashMap<>();
+
+  public InstanceConverter() {
+    super();
+
+    // initialize registry
+    RegistryFactoryHelper.getRegistry();
+  }
 
   public InstanceCollection convert(Iterable<? extends ModelObject> objects, TypeIndex schema) throws IllegalArgumentException, IllegalAccessException {
     //XXX improvement: on demand conversion in stream?
