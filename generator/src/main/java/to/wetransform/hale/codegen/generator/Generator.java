@@ -7,8 +7,10 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.lang.model.element.Modifier;
@@ -81,6 +83,7 @@ public class Generator {
     typeClasses.put(type.getName(), className); // being generated
 
     TypeSpec.Builder builder = TypeSpec.classBuilder(className);
+    builder.addModifiers(Modifier.PUBLIC);
 
     // add named annotation
     builder.addAnnotation(createNameAnnotation(type.getName()));
@@ -135,6 +138,7 @@ public class Generator {
     // generate class
     className = newClassName(group.getName()); //XXX is the name sufficient?
     TypeSpec.Builder builder = TypeSpec.classBuilder(className);
+    builder.addModifiers(Modifier.PUBLIC);
 
     // add named annotation
     //XXX groups don't have resolvable names
@@ -322,11 +326,7 @@ public class Generator {
     // TODO Auto-generated method stub
     //FIXME collisions in classes and their super classes need to be avoided
     // -> use scoped NameAllocator and add "value", then super type properties, then properties... ?
-    String result = NameAllocator.toJavaIdentifier(name.getLocalPart());
-    if ("null".equals(result)) {
-      return "_null";
-    }
-    return result;
+    return toValidIdentifier(name.getLocalPart());
   }
 
   private ClassName newClassName(QName name) {
@@ -336,9 +336,9 @@ public class Generator {
       packageName = packagePrefix;
     }
     else if (!packagePrefix.isEmpty()) {
-      packageName = packagePrefix + "." + packageName;
+      packageName = packagePrefix + "." + toValidIdentifier(packageName);
     }
-    return ClassName.get(packageName, name.getLocalPart());
+    return ClassName.get(packageName, toValidIdentifier(name.getLocalPart()));
   }
 
   private String getPackageName(String namespaceURI) {
@@ -373,8 +373,71 @@ public class Generator {
     return parts.stream().collect(Collectors.joining("."));
   }
 
+  private static final Set<String> reservedKeywords = new HashSet<>();
+  static {
+    reservedKeywords.add("abstract");
+    reservedKeywords.add("assert");
+    reservedKeywords.add("boolean");
+    reservedKeywords.add("break");
+    reservedKeywords.add("byte");
+    reservedKeywords.add("case");
+    reservedKeywords.add("catch");
+    reservedKeywords.add("char");
+    reservedKeywords.add("class");
+    reservedKeywords.add("const");
+    reservedKeywords.add("continue");
+    reservedKeywords.add("default");
+    reservedKeywords.add("do");
+    reservedKeywords.add("double");
+    reservedKeywords.add("else");
+    reservedKeywords.add("extends");
+    reservedKeywords.add("false");
+    reservedKeywords.add("final");
+    reservedKeywords.add("finally");
+    reservedKeywords.add("float");
+    reservedKeywords.add("for");
+    reservedKeywords.add("goto");
+    reservedKeywords.add("if");
+    reservedKeywords.add("implements");
+    reservedKeywords.add("import");
+    reservedKeywords.add("instanceof");
+    reservedKeywords.add("int");
+    reservedKeywords.add("interface");
+    reservedKeywords.add("long");
+    reservedKeywords.add("native");
+    reservedKeywords.add("new");
+    reservedKeywords.add("null");
+    reservedKeywords.add("package");
+    reservedKeywords.add("private");
+    reservedKeywords.add("protected");
+    reservedKeywords.add("public");
+    reservedKeywords.add("return");
+    reservedKeywords.add("short");
+    reservedKeywords.add("static");
+    reservedKeywords.add("strictfp");
+    reservedKeywords.add("super");
+    reservedKeywords.add("switch");
+    reservedKeywords.add("synchronized");
+    reservedKeywords.add("this");
+    reservedKeywords.add("throw");
+    reservedKeywords.add("throws");
+    reservedKeywords.add("transient");
+    reservedKeywords.add("true");
+    reservedKeywords.add("try");
+    reservedKeywords.add("void");
+    reservedKeywords.add("volatile");
+    reservedKeywords.add("while");
+  }
+
   private String toValidIdentifier(String ident) {
-    return NameAllocator.toJavaIdentifier(ident);
+    String result = NameAllocator.toJavaIdentifier(ident);
+
+    // reserved keywords not properly handled
+    if (reservedKeywords.contains(result)) {
+      return "_" + result;
+    }
+
+    return result;
   }
 
 }
