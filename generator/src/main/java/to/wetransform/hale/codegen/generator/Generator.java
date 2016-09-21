@@ -29,7 +29,6 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
-import eu.esdihumboldt.hale.common.instance.model.Group;
 import eu.esdihumboldt.hale.common.schema.model.ChildDefinition;
 import eu.esdihumboldt.hale.common.schema.model.DefinitionGroup;
 import eu.esdihumboldt.hale.common.schema.model.GroupPropertyDefinition;
@@ -40,6 +39,7 @@ import eu.esdihumboldt.hale.common.schema.model.constraint.property.ChoiceFlag;
 import eu.esdihumboldt.hale.common.schema.model.constraint.type.Binding;
 import eu.esdihumboldt.hale.common.schema.model.constraint.type.HasValueFlag;
 import to.wetransform.hale.codegen.model.Choice;
+import to.wetransform.hale.codegen.model.Group;
 import to.wetransform.hale.codegen.model.ModelObject;
 import to.wetransform.hale.codegen.model.Multiple;
 import to.wetransform.hale.codegen.model.Named;
@@ -133,10 +133,9 @@ public class Generator {
       return className;
     }
 
-    groupClasses.put(group.getName(), className); // being generated...
-
     // generate class
     className = newClassName(group.getName()); //XXX is the name sufficient?
+    groupClasses.put(group.getName(), className); // being generated...
     TypeSpec.Builder builder = TypeSpec.classBuilder(className);
     builder.addModifiers(Modifier.PUBLIC);
 
@@ -338,7 +337,16 @@ public class Generator {
     else if (!packagePrefix.isEmpty()) {
       packageName = packagePrefix + "." + toValidIdentifier(packageName);
     }
-    return ClassName.get(packageName, toValidIdentifier(name.getLocalPart()));
+    String simpleName = toValidIdentifier(name.getLocalPart());
+    //XXX avoid collisions between package and class names
+    //XXX a better approach? -> depends on overall naming strategy
+    if (simpleName.length() == 1) {
+      simpleName = simpleName.toUpperCase();
+    }
+    else {
+      simpleName = simpleName.substring(0, 1).toUpperCase() + simpleName.substring(1);
+    }
+    return ClassName.get(packageName, simpleName);
   }
 
   private String getPackageName(String namespaceURI) {
