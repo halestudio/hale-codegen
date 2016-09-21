@@ -31,6 +31,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
 
+import eu.esdihumboldt.hale.common.schema.geometry.GeometryProperty;
 import eu.esdihumboldt.hale.common.schema.model.ChildDefinition;
 import eu.esdihumboldt.hale.common.schema.model.DefinitionGroup;
 import eu.esdihumboldt.hale.common.schema.model.GroupPropertyDefinition;
@@ -38,6 +39,7 @@ import eu.esdihumboldt.hale.common.schema.model.PropertyDefinition;
 import eu.esdihumboldt.hale.common.schema.model.TypeDefinition;
 import eu.esdihumboldt.hale.common.schema.model.constraint.property.Cardinality;
 import eu.esdihumboldt.hale.common.schema.model.constraint.property.ChoiceFlag;
+import eu.esdihumboldt.hale.common.schema.model.constraint.type.AugmentedValueFlag;
 import eu.esdihumboldt.hale.common.schema.model.constraint.type.Binding;
 import eu.esdihumboldt.hale.common.schema.model.constraint.type.HasValueFlag;
 import to.wetransform.hale.codegen.model.Choice;
@@ -178,6 +180,13 @@ public class Generator {
     else {
       // add properties
       addProperties(type, builder);
+
+      if (type.getConstraint(AugmentedValueFlag.class).isEnabled()) {
+        //XXX special case: augmented value - also add value field
+        //XXX doing this specifically for geometry handling right now, but there are alternatives to this approach
+        //FIXME this is a hack - it cannot be generally assumed that augmented values are geometries
+        addBeanProperty(builder, "geometry", ClassName.get(GeometryProperty.class), null);
+      }
     }
 
     TypeSpec typeClass = builder.build();
