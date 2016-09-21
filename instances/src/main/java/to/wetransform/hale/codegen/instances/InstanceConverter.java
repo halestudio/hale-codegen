@@ -146,7 +146,7 @@ public class InstanceConverter {
       // assuming group/choice
       MutableGroup group = new DefaultGroup(fieldDef.asGroup());
       for (Field groupField : getAllFields(value.getClass())) {
-        addFieldProperties(result, value, groupField);
+        addFieldProperties(group, value, groupField);
       }
       result.addProperty(fieldName, group);
     }
