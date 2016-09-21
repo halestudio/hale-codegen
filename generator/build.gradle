@@ -1,4 +1,7 @@
 apply plugin: 'org.standardout.eclipseconfig'
+apply plugin: 'application'
+
+mainClassName = 'to.wetransform.hale.codegen.generator.CLI'
 
 sourceCompatibility = '1.8'
 
