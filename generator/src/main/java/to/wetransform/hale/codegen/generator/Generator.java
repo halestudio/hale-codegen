@@ -59,9 +59,20 @@ public class Generator {
 
   private final String mainNamespace;
 
+  private final Set<String> skipTypes = new HashSet<>();
+
   public Generator(Map<String, String> namespacePrefixes, String mainNamespace) {
     this.namespacePrefixes = namespacePrefixes;
     this.mainNamespace = mainNamespace;
+
+    //FIXME temporary fix for PoC
+    skipTypes.add("TimePeriodType");
+    skipTypes.add("GetCapabilitiesType");
+    skipTypes.add("CircleByCenterPointType");
+    skipTypes.add("ArcByBulgeType");
+    skipTypes.add("ArcType");
+    skipTypes.add("CircleType");
+    skipTypes.add("BezierType");
   }
 
   /**
@@ -75,6 +86,13 @@ public class Generator {
     this.targetFolder = targetFolder;
 
     for (TypeDefinition type : types) {
+      //FIXME handling problematic cases in PoC
+      if (skipTypes.contains(type.getName().getLocalPart())) {
+        // skip creating property
+        log.warn("Skipped creating blacklisted type " + type.getName());
+        continue;
+      }
+
       getOrCreateClass(type);
     }
   }
@@ -206,7 +224,14 @@ public class Generator {
       }
       else {
         // complex type
-        //TODO check if this kind of recursion can lead to problems (cycles!)
+
+        //FIXME handling problematic cases in PoC
+        if (skipTypes.contains(property.getPropertyType().getName().getLocalPart())) {
+          // skip creating property
+          log.warn("Skipped creating property with blacklisted type, property name is " + propertyName);
+          return;
+        }
+
         propertyType = getOrCreateClass(property.getPropertyType());
       }
 
