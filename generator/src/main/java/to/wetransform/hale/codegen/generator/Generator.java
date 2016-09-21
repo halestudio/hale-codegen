@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -18,7 +19,6 @@ import javax.xml.namespace.QName;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -54,6 +54,15 @@ public class Generator {
   private final Map<QName, ClassName> groupClasses = new HashMap<>();
   private final String packagePrefix = ""; //TODO configurable
   private File targetFolder;
+
+  private final Map<String, String> namespacePrefixes;
+
+  private final String mainNamespace;
+
+  public Generator(Map<String, String> namespacePrefixes, String mainNamespace) {
+    this.namespacePrefixes = namespacePrefixes;
+    this.mainNamespace = mainNamespace;
+  }
 
   /**
    * Generate model classes for the given type definitions.
@@ -325,7 +334,27 @@ public class Generator {
     // TODO Auto-generated method stub
     //FIXME collisions in classes and their super classes need to be avoided
     // -> use scoped NameAllocator and add "value", then super type properties, then properties... ?
-    return toValidIdentifier(name.getLocalPart());
+    //XXX for now use prefix based names - but problematic as prefixes may not be available
+    String baseIdentifier = toValidIdentifier(name.getLocalPart());
+    if (Objects.equals(mainNamespace, name.getNamespaceURI())) {
+      // use identifier directly
+      return baseIdentifier;
+    }
+    else {
+      String prefix = namespacePrefixes.get(name.getNamespaceURI());
+      if (prefix != null && !prefix.isEmpty()) {
+        if (baseIdentifier.length() == 1) {
+          baseIdentifier = baseIdentifier.toUpperCase();
+        }
+        else {
+          baseIdentifier = baseIdentifier.substring(0, 1).toUpperCase() + baseIdentifier.substring(1);
+        }
+        return prefix + baseIdentifier;
+      }
+    }
+
+    // fall-back
+    return baseIdentifier;
   }
 
   private ClassName newClassName(QName name) {

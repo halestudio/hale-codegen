@@ -37,7 +37,7 @@ public class CLI {
 
     Collection<? extends TypeDefinition> types = reader.getSchema().getMappingRelevantTypes();
 
-    Generator generator = new Generator();
+    Generator generator = new Generator(reader.getSchema().getPrefixes(), reader.getSchema().getNamespace());
     generator.generateModel(types, targetFolder);
   }
 
