@@ -1,6 +1,5 @@
 package to.wetransform.hale.codegen.generator;
 
-import java.awt.Choice;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -38,6 +37,9 @@ import eu.esdihumboldt.hale.common.schema.model.constraint.property.Cardinality;
 import eu.esdihumboldt.hale.common.schema.model.constraint.property.ChoiceFlag;
 import eu.esdihumboldt.hale.common.schema.model.constraint.type.Binding;
 import eu.esdihumboldt.hale.common.schema.model.constraint.type.HasValueFlag;
+import to.wetransform.hale.codegen.model.Choice;
+import to.wetransform.hale.codegen.model.ModelObject;
+import to.wetransform.hale.codegen.model.Multiple;
 import to.wetransform.hale.codegen.model.Named;
 import to.wetransform.hale.codegen.model.Property;
 import to.wetransform.hale.codegen.model.Value;
@@ -94,6 +96,8 @@ public class Generator {
     else {
       // must implement Serializable
       builder.addSuperinterface(ClassName.get(Serializable.class));
+      // add marker interface
+      builder.addSuperinterface(ClassName.get(ModelObject.class));
     }
 
     if (isSimpleType(type)) {
@@ -286,6 +290,7 @@ public class Generator {
     FieldSpec.Builder fieldBuilder = FieldSpec.builder(propertyType, propertyName, Modifier.PRIVATE)
         // initialize with empty collection
         .initializer("new $T()", ClassName.get(ArrayList.class))
+        .addAnnotation(Multiple.class)
         .addAnnotation(createNameAnnotation(qualifiedName));
     if (definition != null) {
       fieldBuilder.addAnnotation(getPropertyAnnotation(definition));
