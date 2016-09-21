@@ -326,7 +326,7 @@ public class Generator {
     // add the field
     FieldSpec.Builder fieldBuilder = FieldSpec.builder(propertyType, propertyName, Modifier.PRIVATE)
         // initialize with empty collection
-        .initializer("new $T()", ClassName.get(ArrayList.class))
+        .initializer("new $T<>()", ClassName.get(ArrayList.class))
         .addAnnotation(Multiple.class)
         .addAnnotation(createNameAnnotation(qualifiedName));
     if (definition != null) {
