@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,6 +29,7 @@ import com.squareup.javapoet.NameAllocator;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.WildcardTypeName;
 
 import eu.esdihumboldt.hale.common.schema.model.ChildDefinition;
 import eu.esdihumboldt.hale.common.schema.model.DefinitionGroup;
@@ -40,6 +42,7 @@ import eu.esdihumboldt.hale.common.schema.model.constraint.type.Binding;
 import eu.esdihumboldt.hale.common.schema.model.constraint.type.HasValueFlag;
 import to.wetransform.hale.codegen.model.Choice;
 import to.wetransform.hale.codegen.model.Group;
+import to.wetransform.hale.codegen.model.ModelInfo;
 import to.wetransform.hale.codegen.model.ModelObject;
 import to.wetransform.hale.codegen.model.Multiple;
 import to.wetransform.hale.codegen.model.Named;
@@ -95,6 +98,41 @@ public class Generator {
 
       getOrCreateClass(type);
     }
+
+    // generate model class with information on all created types
+    FieldSpec classesField = FieldSpec.builder(ParameterizedTypeName.get(
+        ClassName.get(Map.class), ClassName.get(QName.class),
+        ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(ModelObject.class))), "modelClasses", Modifier.PRIVATE, Modifier.FINAL)
+        .build();
+
+    MethodSpec getClassMethod = MethodSpec.methodBuilder("getModelClass")
+        .addModifiers(Modifier.PUBLIC)
+        .addParameter(QName.class, "name")
+        .returns(ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(ModelObject.class)))
+        .addStatement("return this.$N.get(name)", classesField)
+        .build();
+
+    MethodSpec.Builder constructorBuilder = MethodSpec.constructorBuilder();
+    constructorBuilder.addStatement("this.$N = new $T<>()", classesField, HashMap.class);
+    constructorBuilder.addModifiers(Modifier.PUBLIC);
+    for (Entry<QName, ClassName> entry : typeClasses.entrySet()) {
+      constructorBuilder.addStatement("this.$N.put(new $T($S, $S), $T.class)",
+          classesField, QName.class, entry.getKey().getNamespaceURI(),
+          entry.getKey().getLocalPart(), entry.getValue());
+    }
+
+    ClassName modelClassName = ClassName.get(packagePrefix, "Model");
+    //XXX class name may not be model due to this issue in javapoet 1.7:
+    // https://github.com/square/javapoet/issues/470
+    TypeSpec modelClass = TypeSpec.classBuilder(modelClassName)
+      .addModifiers(Modifier.PUBLIC)
+      .addSuperinterface(ClassName.get(ModelInfo.class))
+      .addField(classesField)
+      .addMethod(getClassMethod)
+      .addMethod(constructorBuilder.build())
+      .build();
+
+    JavaFile.builder(modelClassName.packageName(), modelClass).build().writeTo(targetFolder);
   }
 
   private ClassName getOrCreateClass(TypeDefinition type) throws IOException {
