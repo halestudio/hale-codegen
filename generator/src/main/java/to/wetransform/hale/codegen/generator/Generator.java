@@ -181,7 +181,8 @@ public class Generator {
       // add properties
       addProperties(type, builder);
 
-      if (type.getConstraint(AugmentedValueFlag.class).isEnabled()) {
+      if (type.getConstraint(AugmentedValueFlag.class).isEnabled() &&
+          (type.getSuperType() == null || !type.getSuperType().getConstraint(AugmentedValueFlag.class).isEnabled())) {
         //XXX special case: augmented value - also add value field
         //XXX doing this specifically for geometry handling right now, but there are alternatives to this approach
         //FIXME this is a hack - it cannot be generally assumed that augmented values are geometries
