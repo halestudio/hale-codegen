@@ -1,5 +1,3 @@
-apply plugin: 'org.standardout.eclipseconfig'
-
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
 
