@@ -29,7 +29,7 @@ configure(srcProjects()) { project ->
   apply plugin: 'org.standardout.eclipseconfig'
 
   group = 'to.wetransform.hale-codegen'
-  version = '0.1.0'
+  version = '0.2.0-SNAPSHOT'
 
   eclipseconfig {
     codeTemplates = rootProject.file('codetemplates.xml')
