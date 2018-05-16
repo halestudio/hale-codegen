@@ -46,10 +46,6 @@ configure(srcProjects()) { project ->
     maven {
       url 'https://artifactory.wetransform.to/artifactory/libs-release'
     }
-    // HALE artifactory
-    maven {
-      url 'http://artifactory.esdi-humboldt.eu/artifactory/libs-release/'
-    }
   }
 
   configurations.all {
