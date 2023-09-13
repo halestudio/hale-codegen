@@ -25,7 +25,7 @@ def groovyProjects() {
 configure(srcProjects()) { project ->
   // common settings
 
-  apply plugin: 'maven'
+  apply plugin: 'maven-publish'
   apply plugin: 'org.standardout.eclipseconfig'
 
   group = 'to.wetransform.hale-codegen'
@@ -97,18 +97,17 @@ configure(srcProjects()) { project ->
     archives packageSources
   }
 
-  uploadArchives {
+  publishing {
     repositories {
-      mavenDeployer {
+      maven {
 
         // upload to wetransform artifactory
-        repository(url: 'https://artifactory.wetransform.to/artifactory/libs-release-local') {
-          authentication(userName: project.hasProperty('wetfArtifactoryUser') ? wetfArtifactoryUser : '',
-            password: project.hasProperty('wetfArtifactoryPassword') ? wetfArtifactoryPassword : '')
-        }
-        snapshotRepository(url: 'https://artifactory.wetransform.to/artifactory/libs-snapshot-local') {
-          authentication(userName: project.hasProperty('wetfArtifactoryUser') ? wetfArtifactoryUser : '',
-            password: project.hasProperty('wetfArtifactoryPassword') ? wetfArtifactoryPassword : '')
+        def releasesRepoUrl = 'https://artifactory.wetransform.to/artifactory/libs-release-local'
+        def snapshotsRepoUrl = 'https://artifactory.wetransform.to/artifactory/libs-snapshot-local'
+        url project.hasProperty('release') ? releasesRepoUrl : snapshotsRepoUrl
+        credentials {
+          username = project.hasProperty('wetfArtifactoryUser') ? wetfArtifactoryUser : ''
+          password = project.hasProperty('wetfArtifactoryPassword') ? wetfArtifactoryPassword : ''
         }
 
       }
