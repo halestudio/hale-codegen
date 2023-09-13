@@ -1,6 +1,6 @@
 buildscript {
   repositories {
-    jcenter()
+    mavenCentral()
   }
 
   dependencies {
@@ -40,7 +40,7 @@ configure(srcProjects()) { project ->
       url 'https://repo.osgeo.org/repository/release/'
     }
 
-    jcenter()
+    mavenCentral()
 
     // hale»studio artifacts
     maven {
@@ -67,7 +67,7 @@ configure(javaProjects()) {
   // package javadoc into a jar file
   task packageJavadoc(type: Jar, dependsOn: 'javadoc') {
     from javadoc.destinationDir
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
   }
 }
 
@@ -78,7 +78,7 @@ configure(groovyProjects()) {
   // package groovydoc into a jar file
   task packageJavadoc(type: Jar, dependsOn: 'groovydoc') {
     from groovydoc.destinationDir
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
   }
 }
 
@@ -88,7 +88,7 @@ configure(srcProjects()) { project ->
   // package source into a jar file
   task packageSources(type: Jar) {
     from sourceSets.main.allSource
-    classifier = 'sources'
+    archiveClassifier = 'sources'
   }
 
   // define artifacts for upload
