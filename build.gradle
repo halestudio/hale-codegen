@@ -99,6 +99,14 @@ configure(srcProjects()) { project ->
   }
 
   publishing {
+    publications {
+      mavenJava(MavenPublication) {
+        from components.java
+        artifact packageSources
+        artifact packageJavadoc
+      }
+    }
+
     repositories {
       maven {
 
