@@ -22,11 +22,15 @@ dependencies {
   implementation "eu.esdihumboldt.hale:eu.esdihumboldt.hale.common.schema.presets:$haleVersion"
 
   // resource cache (OpenGIS schemas, INSPIRE schemas, W3C schemas, etc.)
-  implementation(group: 'eu.esdihumboldt.hale', name: 'eu.esdihumboldt.util.resource', version: haleVersion)
-  implementation(group: 'eu.esdihumboldt.hale', name: 'eu.esdihumboldt.util.resource.schemas.opengis.net', version: haleResourcesVersion)
-  implementation(group: 'eu.esdihumboldt.hale', name: 'eu.esdihumboldt.util.resource.schemas.inspire', version: haleResourcesVersion)
-  implementation(group: 'eu.esdihumboldt.hale', name: 'eu.esdihumboldt.util.resource.schemas.portele.de', version: haleResourcesVersion)
-  implementation(group: 'eu.esdihumboldt.hale', name: 'eu.esdihumboldt.util.resource.w3.org', version: haleResourcesVersion)
+  //
+  // disabled to avoid "Invalid CEN header" errors during build time
+  // can potentially be enabled again once resources cache artifacts have been created with a newer version of bndtools
+  //
+  // implementation(group: 'eu.esdihumboldt.hale', name: 'eu.esdihumboldt.util.resource', version: haleVersion)
+  // implementation(group: 'eu.esdihumboldt.hale', name: 'eu.esdihumboldt.util.resource.schemas.opengis.net', version: haleResourcesVersion)
+  // implementation(group: 'eu.esdihumboldt.hale', name: 'eu.esdihumboldt.util.resource.schemas.inspire', version: haleResourcesVersion)
+  // implementation(group: 'eu.esdihumboldt.hale', name: 'eu.esdihumboldt.util.resource.schemas.portele.de', version: haleResourcesVersion)
+  // implementation(group: 'eu.esdihumboldt.hale', name: 'eu.esdihumboldt.util.resource.w3.org', version: haleResourcesVersion)
 
   // logging
   implementation(group: 'eu.esdihumboldt.unpuzzled', name: 'de.fhg.igd.slf4jplus.logback.appender', version: '1.2.0.201503311443')
