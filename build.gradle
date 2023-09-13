@@ -42,7 +42,7 @@ configure(srcProjects()) { project ->
 
     jcenter()
 
-    // HALE artifacts
+    // hale»studio artifacts
     maven {
       url 'https://artifactory.wetransform.to/artifactory/libs-release'
     }
@@ -54,7 +54,8 @@ configure(srcProjects()) { project ->
   }
 
   project.ext {
-    haleVersion = '3.0.0'
+    haleVersion = '5.0.1'
+    haleResourcesVersion = '2022.8.16'
   }
 
 }
@@ -115,6 +116,6 @@ configure(srcProjects()) { project ->
   }
 }
 
-task wrapper(type: Wrapper) {
-  gradleVersion = '3.0'
+wrapper {
+  gradleVersion = '7.6.1'
 }

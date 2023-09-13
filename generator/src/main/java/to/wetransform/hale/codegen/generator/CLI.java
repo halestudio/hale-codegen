@@ -38,7 +38,7 @@ public class CLI {
   }
 
   public static void run(URI schema, File targetFolder) throws IOProviderConfigurationException, IOException {
-    // initialize HALE registry
+    // initialize hale»studio registry
     RegistryFactoryHelper.getRegistry();
 
     // load XML Schema

@@ -1,13 +1,13 @@
-sourceCompatibility = '1.7'
-targetCompatibility = '1.7'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 
 dependencies {
-  compile project(':model')
+  implementation project(':model')
 
   // core
-  compile 'eu.esdihumboldt.unpuzzled:org.eclipse.equinox.nonosgi.registry:1.0.0'
-  compile "eu.esdihumboldt.hale:eu.esdihumboldt.hale.common.core:$haleVersion"
+  implementation 'eu.esdihumboldt.unpuzzled:org.eclipse.equinox.nonosgi.registry:1.0.0'
+  implementation "eu.esdihumboldt.hale:eu.esdihumboldt.hale.common.core:$haleVersion"
 
   // instance
-  compile "eu.esdihumboldt.hale:eu.esdihumboldt.hale.common.instance:$haleVersion"
+  implementation "eu.esdihumboldt.hale:eu.esdihumboldt.hale.common.instance:$haleVersion"
 }
