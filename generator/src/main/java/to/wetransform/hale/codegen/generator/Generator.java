@@ -93,6 +93,8 @@ public class Generator {
     skipTypes.add("ArcType");
     skipTypes.add("CircleType");
     skipTypes.add("BezierType");
+    skipTypes.add("UnNamedDomainType");
+    skipTypes.add("AbstractCoverageType");
   }
 
   /**
@@ -176,7 +178,19 @@ public class Generator {
         !(!type.getConstraint(HasValueFlag.class).isEnabled()
             && type.getSuperType().getConstraint(HasValueFlag.class).isEnabled())) {
       //TODO check if this kind of recursion can lead to problems (cycles!)
-      builder.superclass(getOrCreateClass(type.getSuperType()));
+      //FIXME handling problematic cases in PoC
+      if (skipTypes.contains(type.getSuperType().getName().getLocalPart())) {
+        // skip super type
+        log.warn("Skipped blacklisted supertype " + type.getSuperType().getName() + " for type " + type.getName());
+
+        // must implement Serializable
+        builder.addSuperinterface(ClassName.get(Serializable.class));
+        // add marker interface
+        builder.addSuperinterface(ClassName.get(ModelObject.class));
+      }
+      else {
+        builder.superclass(getOrCreateClass(type.getSuperType()));
+      }
     }
     else {
       // must implement Serializable
