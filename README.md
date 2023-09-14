@@ -8,6 +8,8 @@ The project consists of three modules:
 - **generator** - Code generator for models based on a schema that can be read by hale, includes a basic command line interface.
 - **instances** - Convert model objects to and from instances that can be read/written with the hale API. This indirectly allows reading/writing model objects, e.g. from/to XML or GML files
 
+An example project using the generator to generate classes, read and write data can be found [here](https://github.com/halestudio/hale-codegen-example).
+
 ## Project status
 
 This project is a **proof of concept** which means that it was implemented to cover a specific use case to a certain extent and comes with some limitations.
